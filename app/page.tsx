@@ -17,14 +17,14 @@ export default function Home() {
 
         <div className="flex gap-4 items-start flex-row">
           <Link
-            className="rounded-full border border-black dark:border-white transition-colors flex items-center justify-center hover:opacity-75 text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+            className="rounded-full border border-black dark:border-white transition-colors flex items-center justify-center hover:opacity-75 text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 duration-200"
             href="/register"
             rel="noopener noreferrer"
           >
             Register
           </Link>
           <Link
-            className="rounded-full border border-hkust-gold transition-colors flex items-center justify-center bg-hkust-gold text-background gap-2 hover:opacity-75 text-white text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+            className="rounded-full border border-hkust-gold transition-colors flex items-center justify-center bg-hkust-gold text-background gap-2 hover:opacity-75 text-white text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 duration-200"
             href="/dashboard"
             rel="noopener noreferrer"
           >
