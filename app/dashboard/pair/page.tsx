@@ -31,7 +31,7 @@ export default function Page() {
         showScanner
         ? (
           <Fragment>
-            <p>Scan the QR code located on the side of the projector.</p>
+            <p>Scan the QR code on the login screen displayed by the projector.</p>
             <Scanner onScan={(result) => getScanResult(result)} components={{finder: false}} />
           </Fragment>
         ) : showIDEntry
@@ -52,12 +52,12 @@ export default function Page() {
           <Fragment>
             <div className={pairOptionEntryStyle} onClick={() => setShowScanner(true)}>
               <h2 className={pairOptionNameStyle}>Scan QR code</h2>
-              <p>Scan the QR code located on the side of the projector.</p>
+              <p>Scan the QR code on the login screen displayed by the projector.</p>
             </div>
-            <div className={pairOptionEntryStyle} onClick={() => setShowIDEntry(true)}>
+            {/* <div className={pairOptionEntryStyle} onClick={() => setShowIDEntry(true)}>
               <h2 className={pairOptionNameStyle}>Enter projector ID</h2>
               <p>Enter the projector ID located on the side of the projector.</p>
-            </div>
+            </div> */}
           </Fragment>
         )
       }
