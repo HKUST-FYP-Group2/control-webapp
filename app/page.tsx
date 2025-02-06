@@ -10,6 +10,7 @@ export default function Home() {
   async function loginSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    // Compose request body
     const formData = new FormData(event.currentTarget);
     var username: string = formData.get('username')?.toString() || "";
     var password: string = formData.get('password')?.toString() || "";
@@ -18,14 +19,34 @@ export default function Home() {
       password: password
     });
   
-    fetch(apiAddress + '/login', {
-      method: 'POST',
-      body: jsonFormData,
-      headers: {"Content-Type": "application/json"}
-    })
-      .then(response => response.json())
-      .then(data => alert(JSON.stringify(data)))
-      .catch(err => alert(err));
+    // fetch(apiAddress + '/login', {
+    //   method: 'POST',
+    //   body: jsonFormData,
+    //   headers: {"Content-Type": "application/json"}
+    // })
+    //   .then(response => response.json())
+    //   .then(data => alert(JSON.stringify(data)))
+    //   .catch(err => alert(err));
+
+    // Send request
+    var response;
+    try {
+      response = await fetch(apiAddress + '/login', {
+        method: 'POST',
+        body: jsonFormData,
+        headers: {"Content-Type": "application/json"}
+      });
+    } catch (error) {
+      alert("Login error: " + error);
+    }
+
+    // Get response body and status
+    var responseBody = await response?.json();
+    if (response?.ok) {
+      alert(JSON.stringify(responseBody));
+    } else {
+      alert(`Failed to login: ${responseBody.error}`);
+    }
   }
 
   return (
