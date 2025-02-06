@@ -38,6 +38,7 @@ export default function Home() {
       });
     } catch (error) {
       alert("Login error: " + error);
+      return;
     }
 
     // Get response body and status

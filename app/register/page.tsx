@@ -37,6 +37,7 @@ export default function Page() {
       });
     } catch (error) {
       alert("Registration error: " + error);
+      return;
     }
 
     // Get response body and status
