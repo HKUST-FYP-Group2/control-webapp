@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from 'next/link';
 import { FormEvent } from 'react';
+import { redirect } from 'next/navigation';
 
-const apiAddress = "http://localhost:5000";
+const apiAddress = "http://localhost:8080";
 
 export default function Home() {
   async function loginSubmit(event: FormEvent<HTMLFormElement>) {
@@ -45,6 +46,7 @@ export default function Home() {
     var responseBody = await response?.json();
     if (response?.ok) {
       alert(JSON.stringify(responseBody));
+      redirect("/dashboard");
     } else {
       alert(`Failed to login: ${responseBody.error}`);
     }

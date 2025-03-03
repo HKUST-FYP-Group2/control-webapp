@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { FormEvent } from 'react';
 
-const apiAddress = "http://localhost:5000";
+const apiAddress = "http://localhost:8080";
 
 export default function Page() {
   async function regSubmit(event: FormEvent<HTMLFormElement>) {
