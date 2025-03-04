@@ -9,6 +9,7 @@ import {
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { redirect } from 'next/navigation';
+import { useCookies } from 'react-cookie';
 
 const projectorEntryLinkTagStyle = "w-full md:w-72"
 
@@ -23,19 +24,26 @@ const projectorStatusIconStyle = "h-4";
 const apiAddress = "http://localhost:8080";
 
 export default function Page() {
+  const [cookies, setCookie] = useCookies(['controlAppToken']);
+
   useEffect(() => {
-    fetch(apiAddress + "/status", {
-      method: "GET",
-      headers: {"Content-Type": "application/json"}
-    })
-      .then(response => {
-        if (response?.ok) {
-          const data = response.json();
-          alert("You are logged in!");
-        } else {
-          alert("You are not logged in!");
-        }
-      });
+    // fetch(apiAddress + "/status", {
+    //   method: "GET",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Authorization": "Bearer " + cookies.controlAppToken
+    //   }
+    // })
+    //   .then(response => {
+    //     if (response?.ok) {
+    //       response?.json()
+    //         .then(data => {
+    //           alert("You are logged in as: " + data?.username)
+    //         });
+    //     } else {
+    //       alert("You are not logged in!");
+    //     }
+    //   });
   });
 
   return (

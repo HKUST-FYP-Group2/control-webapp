@@ -5,6 +5,7 @@ import { IDetectedBarcode, Scanner } from '@yudiel/react-qr-scanner';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useCookies } from 'react-cookie';
 
 const pairOptionEntryStyle = "flex flex-col w-full rounded-md p-4 bg-neutral-50 dark:bg-neutral-900 shadow-md hover:opacity-75 hover:cursor-pointer hover:shadow active:shadow-none duration-200";
 
@@ -12,14 +13,45 @@ const pairOptionNameStyle = "text-2xl font-bold leading-10";
 
 const projIDButtonStyle = "w-max rounded-md bg-neutral-50 dark:bg-neutral-900 p-3 text-sm font-medium hover:opacity-75 shadow-md hover:shadow active:shadow-none md:p-2 md:px-3 duration-200"
 
+const apiAddress = "http://localhost:8080";
+
 export default function Page() {
+  const [cookies, setCookie] = useCookies(['controlAppToken']);
+
   const [showScanner, setShowScanner] = useState(false);
   const [showIDEntry, setShowIDEntry] = useState(false);
 
   const router = useRouter();
 
   function getScanResult(result: IDetectedBarcode[]) {
-    alert(result[0].rawValue);
+    const scanBody = JSON.stringify({
+      "device_uuid": result[0].rawValue
+    })
+
+    fetch(apiAddress + "/QRLogin", {
+      method: "POST",
+      body: scanBody,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + cookies.controlAppToken
+      }
+    })
+      .then(response => {
+        if (response?.ok) {
+          response?.json()
+            .then(data => {
+              alert("Successfully paired with projector!");
+            });
+        } else {
+          response?.json()
+            .then(data => {
+              alert("Failed to pair: " + data.error);
+            });
+        }
+      }
+
+      );
+
     router.push("/dashboard");
   }
 
