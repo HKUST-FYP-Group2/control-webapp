@@ -21,7 +21,7 @@ const projectorStatusRowStyle = "flex flex-row items-center gap-1";
 
 const projectorStatusIconStyle = "h-4";
 
-const apiAddress = "http://localhost:8080";
+const apiAddress = "https://api.virtualwindow.cam";
 
 export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);

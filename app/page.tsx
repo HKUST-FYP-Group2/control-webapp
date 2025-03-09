@@ -6,7 +6,7 @@ import { FormEvent } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 
-const apiAddress = "http://localhost:8080";
+const apiAddress = "https://api.virtualwindow.cam";
 
 export default function Home() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);

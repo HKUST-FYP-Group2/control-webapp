@@ -3,7 +3,7 @@ import {
   PlusIcon,
   ArrowLeftStartOnRectangleIcon
 } from '@heroicons/react/24/solid';
-import Link from 'next/Link';
+import Link from 'next/link';
 
 const sidebarEntryStyle = "flex h-[48px] w-16 md:w-full items-center justify-center gap-2 rounded-md bg-neutral-50 dark:bg-neutral-900 p-3 text-sm font-medium hover:opacity-75 md:flex-none md:justify-start md:p-2 md:px-3 duration-200";
 

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { FormEvent } from 'react';
 
-const apiAddress = "http://localhost:8080";
+const apiAddress = "https://api.virtualwindow.cam";
 
 export default function Page() {
   async function regSubmit(event: FormEvent<HTMLFormElement>) {

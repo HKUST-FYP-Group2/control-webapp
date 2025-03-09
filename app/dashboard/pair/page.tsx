@@ -13,7 +13,7 @@ const pairOptionNameStyle = "text-2xl font-bold leading-10";
 
 const projIDButtonStyle = "w-max rounded-md bg-neutral-50 dark:bg-neutral-900 p-3 text-sm font-medium hover:opacity-75 shadow-md hover:shadow active:shadow-none md:p-2 md:px-3 duration-200"
 
-const apiAddress = "http://localhost:8080";
+const apiAddress = "https://api.virtualwindow.cam";
 
 export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);
@@ -27,6 +27,8 @@ export default function Page() {
     const scanBody = JSON.stringify({
       "device_uuid": result[0].rawValue
     })
+
+    alert(result[0].rawValue);
 
     fetch(apiAddress + "/QRLogin", {
       method: "POST",
