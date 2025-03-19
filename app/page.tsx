@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FormEvent } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
+import webSocket from 'socket.io-client';
 
 const apiAddress = "https://api.virtualwindow.cam";
 

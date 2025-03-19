@@ -7,9 +7,11 @@ import {
   MapPinIcon
 } from '@heroicons/react/24/solid';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
+import webSocket from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 
 const projectorEntryLinkTagStyle = "w-full md:w-72"
 
@@ -26,24 +28,41 @@ const apiAddress = "https://api.virtualwindow.cam";
 export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);
 
+  // WebSocket connection to sync projector settings
+  const [ws, setWs] = useState({} as Socket);
+
+  const connectWebSocket = () => {
+    setWs(webSocket(apiAddress));
+  }
+
+  const initWebSocket = () => {
+
+  }
+
   useEffect(() => {
-    // fetch(apiAddress + "/status", {
-    //   method: "GET",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     "Authorization": "Bearer " + cookies.controlAppToken
-    //   }
-    // })
-    //   .then(response => {
-    //     if (response?.ok) {
-    //       response?.json()
-    //         .then(data => {
-    //           alert("You are logged in as: " + data?.username)
-    //         });
-    //     } else {
-    //       alert("You are not logged in!");
-    //     }
-    //   });
+    fetch(apiAddress + "/status", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + cookies.controlAppToken
+      }
+    })
+      .then(response => {
+        if (response?.ok) {
+          response?.json()
+            .then(data => {
+              alert("You are logged in as: " + data?.username)
+            });
+        } else {
+          alert("You are not logged in!");
+        }
+      })
+      .catch(err => alert(err));
+    
+      if(ws) {
+        alert('Connected to WebSocket!')
+        initWebSocket()
+    }
   });
 
   return (
