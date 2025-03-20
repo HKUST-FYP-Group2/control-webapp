@@ -36,7 +36,9 @@ export default function Page() {
   }
 
   const initWebSocket = () => {
-
+    ws.on("SyncSetting", data => {
+      alert(data);
+    })
   }
 
   useEffect(() => {
