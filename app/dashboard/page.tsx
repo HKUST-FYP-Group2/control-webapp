@@ -31,13 +31,22 @@ export default function Page() {
   // WebSocket connection to sync projector settings
   const [ws, setWs] = useState({} as Socket);
 
+  // Projector settings
+  const [settings, setSettings] = useState({
+    brightness: 100,
+    clock: {},
+    settings_bar: {},
+    sound: {},
+    video: {}
+  });
+
   const connectWebSocket = () => {
     setWs(webSocket(apiAddress));
   }
 
   const initWebSocket = () => {
     ws.on("SyncSetting", data => {
-      alert(data);
+      setSettings(data.room)
     })
   }
 
@@ -54,17 +63,22 @@ export default function Page() {
           response?.json()
             .then(data => {
               alert("You are logged in as: " + data?.username)
+
+              if(ws) {
+                alert('Connected to WebSocket!');
+                initWebSocket();
+                ws.emit("SyncSetting", {
+                  user_id: data?.user_id,
+                  device_type: "Control",
+                  msg: "GetSetting"
+                });
+              }
             });
         } else {
           alert("You are not logged in!");
         }
       })
       .catch(err => alert(err));
-    
-      if(ws) {
-        alert('Connected to WebSocket!')
-        initWebSocket()
-    }
   });
 
   return (
@@ -115,6 +129,23 @@ export default function Page() {
         <div className={projectorEntryStyle}>
           <h2>Device 4</h2>
         </div>
+
+        <Link className={projectorEntryLinkTagStyle} href="/dashboard/menu">
+          <div className={projectorEntryStyle}>
+            <h2 className={projectorNameStyle}>Classroom Projector</h2>
+            <div className={projectorStatusRowStyle}>
+              <PowerIcon className="h-4 text-green-600 dark:text-green-400" />
+              <p>On</p>
+            </div>
+            <div className={projectorStatusRowStyle}>
+              <MapPinIcon className={projectorStatusIconStyle} />
+              <p>Room 4096</p>
+            </div>
+            <div className={projectorStatusRowStyle}>
+              <p>{settings.brightness}</p>
+            </div>
+          </div>
+        </Link>
       </div>
     </div>
   );
