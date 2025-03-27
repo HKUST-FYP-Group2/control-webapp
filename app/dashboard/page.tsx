@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import webSocket from 'socket.io-client';
+import { apiAddress } from '../globals';
 import { socket } from '../socket';
 
 const projectorEntryLinkTagStyle = "w-full md:w-72"
@@ -23,7 +24,7 @@ const projectorStatusRowStyle = "flex flex-row items-center gap-1";
 
 const projectorStatusIconStyle = "h-4";
 
-const apiAddress = "https://api.virtualwindow.cam";  // Production
+// const apiAddress = "https://api.virtualwindow.cam";  // Production
 // const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Page() {
@@ -47,43 +48,6 @@ export default function Page() {
   //     setSettings(data.room)
   //   })
   // }
-
-  useEffect(() => {
-    fetch(apiAddress + "/status", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + cookies.controlAppToken
-      }
-    })
-      .then(response => {
-        if (response?.ok) {
-          response?.json()
-            .then(data => {
-              alert("You are logged in as: " + data?.username);
-
-              // if(ws) {
-              //   alert('Connected to WebSocket!');
-              //   initWebSocket();
-              //   ws.emit("SyncSetting", {
-              //     user_id: data?.user_id,
-              //     device_type: "Control",
-              //     msg: "GetSetting"
-              //   });
-              // }
-
-              socket.connect();
-              if (socket.connected) {
-                alert('Connected to WebSocket!');
-              }
-
-            });
-        } else {
-          alert("You are not logged in!");
-        }
-      })
-      .catch(err => alert(err));
-  });
 
   return (
     <div className="flex flex-col gap-4">

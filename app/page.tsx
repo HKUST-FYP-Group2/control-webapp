@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { FormEvent } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
-import webSocket from 'socket.io-client';
+import { apiAddress } from "./globals";
 
-const apiAddress = "https://api.virtualwindow.cam";  // Production
+// const apiAddress = "https://api.virtualwindow.cam";  // Production
 // const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Home() {
@@ -50,7 +50,7 @@ export default function Home() {
     // Get response body and status
     var responseBody = await response?.json();
     if (response?.ok) {
-      alert(JSON.stringify(responseBody));
+      // alert(JSON.stringify(responseBody));  // DEBUG PRINT
       // Save token to cookies (temporary)
       setCookie('controlAppToken', responseBody.token);
       redirect("/dashboard");

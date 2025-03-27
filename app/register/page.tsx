@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { FormEvent } from 'react';
+import { apiAddress } from '../globals';
 
-const apiAddress = "https://api.virtualwindow.cam";  // Production
+// const apiAddress = "https://api.virtualwindow.cam";  // Production
 // const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Page() {
