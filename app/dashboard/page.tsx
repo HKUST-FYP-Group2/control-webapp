@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import webSocket from 'socket.io-client';
-import { Socket } from 'socket.io-client';
+import { socket } from '../socket';
 
 const projectorEntryLinkTagStyle = "w-full md:w-72"
 
@@ -23,13 +23,11 @@ const projectorStatusRowStyle = "flex flex-row items-center gap-1";
 
 const projectorStatusIconStyle = "h-4";
 
-const apiAddress = "https://api.virtualwindow.cam";
+const apiAddress = "https://api.virtualwindow.cam";  // Production
+// const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);
-
-  // WebSocket connection to sync projector settings
-  const [ws, setWs] = useState({} as Socket);
 
   // Projector settings
   const [settings, setSettings] = useState({
@@ -40,15 +38,15 @@ export default function Page() {
     video: {}
   });
 
-  const connectWebSocket = () => {
-    setWs(webSocket(apiAddress));
-  }
+  // const connectWebSocket = () => {
+  //   setWs(webSocket(apiAddress));
+  // }
 
-  const initWebSocket = () => {
-    ws.on("SyncSetting", data => {
-      setSettings(data.room)
-    })
-  }
+  // const initWebSocket = () => {
+  //   ws.on("SyncSetting", data => {
+  //     setSettings(data.room)
+  //   })
+  // }
 
   useEffect(() => {
     fetch(apiAddress + "/status", {
@@ -62,17 +60,23 @@ export default function Page() {
         if (response?.ok) {
           response?.json()
             .then(data => {
-              alert("You are logged in as: " + data?.username)
+              alert("You are logged in as: " + data?.username);
 
-              if(ws) {
+              // if(ws) {
+              //   alert('Connected to WebSocket!');
+              //   initWebSocket();
+              //   ws.emit("SyncSetting", {
+              //     user_id: data?.user_id,
+              //     device_type: "Control",
+              //     msg: "GetSetting"
+              //   });
+              // }
+
+              socket.connect();
+              if (socket.connected) {
                 alert('Connected to WebSocket!');
-                initWebSocket();
-                ws.emit("SyncSetting", {
-                  user_id: data?.user_id,
-                  device_type: "Control",
-                  msg: "GetSetting"
-                });
               }
+
             });
         } else {
           alert("You are not logged in!");

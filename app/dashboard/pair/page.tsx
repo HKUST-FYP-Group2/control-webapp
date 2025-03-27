@@ -13,7 +13,8 @@ const pairOptionNameStyle = "text-2xl font-bold leading-10";
 
 const projIDButtonStyle = "w-max rounded-md bg-neutral-50 dark:bg-neutral-900 p-3 text-sm font-medium hover:opacity-75 shadow-md hover:shadow active:shadow-none md:p-2 md:px-3 duration-200"
 
-const apiAddress = "https://api.virtualwindow.cam";
+const apiAddress = "https://api.virtualwindow.cam";  // Production
+// const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);

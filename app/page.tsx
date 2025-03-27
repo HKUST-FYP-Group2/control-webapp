@@ -7,7 +7,8 @@ import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import webSocket from 'socket.io-client';
 
-const apiAddress = "https://api.virtualwindow.cam";
+const apiAddress = "https://api.virtualwindow.cam";  // Production
+// const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Home() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);

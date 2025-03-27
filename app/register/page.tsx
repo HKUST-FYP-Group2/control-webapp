@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { FormEvent } from 'react';
 
-const apiAddress = "https://api.virtualwindow.cam";
+const apiAddress = "https://api.virtualwindow.cam";  // Production
+// const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Page() {
   async function regSubmit(event: FormEvent<HTMLFormElement>) {
@@ -43,6 +44,7 @@ export default function Page() {
     // Get response body and status
     var responseBody = await response?.json();
     if (response?.ok) {
+      console.log(responseBody);  // DEBUG PRINT
       alert(JSON.stringify(responseBody));
     } else {
       alert(`Failed to register: ${responseBody.error}`);
