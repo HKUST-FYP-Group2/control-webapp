@@ -24,9 +24,6 @@ const projectorStatusRowStyle = "flex flex-row items-center gap-1";
 
 const projectorStatusIconStyle = "h-4";
 
-// const apiAddress = "https://api.virtualwindow.cam";  // Production
-// const apiAddress = "http://127.0.0.1:8000";  // Development
-
 export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);
 
@@ -48,6 +45,32 @@ export default function Page() {
   //     setSettings(data.room)
   //   })
   // }
+
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.io.opts.extraHeaders = {
+        "Authorization": "Bearer " + cookies.controlAppToken
+      };
+      socket.connect();
+    }
+
+    socket.on('connect', () => {
+      alert("Connected to WebSocket!");  // DEBUG PRINT
+      socket.emit("message", "GetSetting");
+    });
+
+    socket.on("SyncSetting", (value) => {
+      alert(value);  // DEBUG PRINT
+    });
+
+    socket.on("GetSetting", (value) => {
+      alert(value);  // DEBUG PRINT
+    });
+
+    socket.on("connect_error", (err) => {
+      alert(`connect_error due to ${err.message}`);
+    });
+  });
 
   return (
     <div className="flex flex-col gap-4">

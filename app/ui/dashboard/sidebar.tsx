@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import { apiAddress } from '@/app/globals';
+import { socket } from '@/app/socket';
 
 const sidebarEntryStyle = "flex h-[48px] w-16 md:w-full items-center justify-center gap-2 rounded-md bg-neutral-50 dark:bg-neutral-900 p-3 text-sm font-medium hover:opacity-75 md:flex-none md:justify-start md:p-2 md:px-3 duration-200";
 
@@ -54,9 +55,6 @@ export default function Sidebar() {
               // }
 
               // socket.connect();
-              // if (socket.connected) {
-              //   // alert('Connected to WebSocket!');  // DEBUG PRINT
-              // }
 
             });
         } else {

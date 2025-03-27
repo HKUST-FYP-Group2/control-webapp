@@ -5,7 +5,7 @@ import { apiAddress } from './globals';
 
 export const socket = io(
     apiAddress,
-    // {
-    //     autoConnect: false
-    // }
+    {
+        autoConnect: false,
+    }
 );
