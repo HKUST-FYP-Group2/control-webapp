@@ -10,9 +10,9 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
-import webSocket from 'socket.io-client';
 import { apiAddress } from '../globals';
-import { socket } from '../socket';
+// import { socket } from '../socket';
+import { io } from 'socket.io-client';
 
 const projectorEntryLinkTagStyle = "w-full md:w-72"
 
@@ -27,6 +27,8 @@ const projectorStatusIconStyle = "h-4";
 export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);
 
+  const [userId, setUserId] = useState("");
+
   // Projector settings
   const [settings, setSettings] = useState({
     brightness: 100,
@@ -35,6 +37,8 @@ export default function Page() {
     sound: {},
     video: {}
   });
+
+
 
   // const connectWebSocket = () => {
   //   setWs(webSocket(apiAddress));
@@ -47,29 +51,49 @@ export default function Page() {
   // }
 
   useEffect(() => {
-    if (!socket.connected) {
-      socket.io.opts.extraHeaders = {
+    fetch(apiAddress + "/status", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
         "Authorization": "Bearer " + cookies.controlAppToken
-      };
-      socket.connect();
-    }
+      }
+    })
+      .then(response => {
+        if (response?.ok) {
+          response?.json()
+            .then(data => {
+              setUserId(data?.user_id);
 
-    socket.on('connect', () => {
-      alert("Connected to WebSocket!");  // DEBUG PRINT
-      socket.emit("message", "GetSetting");
-    });
+              const socket = io(apiAddress, {
+                transports: ['polling'],
+                extraHeaders: {
+                  Authorization: "Bearer " + cookies.controlAppToken
+                }
+              });
 
-    socket.on("SyncSetting", (value) => {
-      alert(value);  // DEBUG PRINT
-    });
-
-    socket.on("GetSetting", (value) => {
-      alert(value);  // DEBUG PRINT
-    });
-
-    socket.on("connect_error", (err) => {
-      alert(`connect_error due to ${err.message}`);
-    });
+              socket.on('connect', () => {
+                // alert("Connected to WebSocket!");  // DEBUG PRINT
+                socket.emit("SyncSetting", {
+                  user_id: userId,
+                  device_type: "Control",
+                  msg: "GetSetting"
+                });
+              });
+          
+              socket.on("SyncSetting", (settings) => {
+                try {
+                  alert(JSON.stringify(settings));
+                } catch (err) {
+                  alert(settings);
+                }
+              });
+          
+              socket.on("connect_error", (err) => {
+                alert(`connect error due to ${err.message}`);
+              });
+            });
+        }
+      });
   });
 
   return (
