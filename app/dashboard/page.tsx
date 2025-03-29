@@ -4,7 +4,10 @@ import {
   PowerIcon, 
   PhotoIcon,
   MusicalNoteIcon,
-  MapPinIcon
+  MapPinIcon,
+  PlayIcon,
+  SunIcon,
+  SpeakerWaveIcon
 } from '@heroicons/react/24/solid';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -27,18 +30,44 @@ const projectorStatusIconStyle = "h-4";
 export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);
 
-  const [userId, setUserId] = useState("");
+  // Projectors
+  const [projectors, setProjectors] = useState([] as any[]);
+  const projectorTiles = projectors.map(projector => 
+    <Link key={projector?.device_uuid} className={projectorEntryLinkTagStyle} href="/dashboard/menu">
+      <div className={projectorEntryStyle}>
+        {/* Projector name (UUID) */}
+        <h2 className={projectorNameStyle}>{projector?.device_uuid.split("-")[0]}</h2>
 
-  // Projector settings
-  const [settings, setSettings] = useState({
-    brightness: 100,
-    clock: {},
-    settings_bar: {},
-    sound: {},
-    video: {}
-  });
-
-
+        {/* Current playing video */}
+        <div className={projectorStatusRowStyle}>
+          <PlayIcon className={projectorStatusIconStyle} />
+          <p>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</p>
+        </div>
+        
+        {/* Current playing audio */}
+        <div className={projectorStatusRowStyle}>
+          <SpeakerWaveIcon className={projectorStatusIconStyle} />
+          <p>
+            {
+              projector?.settings?.sound?.mode === "original" ?
+              "Original" :
+              (
+                projector?.settings?.sound?.keywords.join(", ") === "" ?
+                "Audio Off" :
+                projector?.settings?.sound?.keywords.join(", ")
+              )
+            }
+          </p>
+        </div>
+        
+        {/* Brightness */}
+        <div className={projectorStatusRowStyle}>
+          <SunIcon className={projectorStatusIconStyle} />
+          <p>{projector?.settings?.brightness || 0}</p>
+        </div>
+      </div>
+    </Link>
+  );
 
   // const connectWebSocket = () => {
   //   setWs(webSocket(apiAddress));
@@ -62,8 +91,7 @@ export default function Page() {
         if (response?.ok) {
           response?.json()
             .then(data => {
-              setUserId(data?.user_id);
-
+              // Set up socket connection
               const socket = io(apiAddress, {
                 transports: ['polling'],
                 extraHeaders: {
@@ -74,34 +102,71 @@ export default function Page() {
               socket.on('connect', () => {
                 // alert("Connected to WebSocket!");  // DEBUG PRINT
                 socket.emit("SyncSetting", {
-                  user_id: userId,
+                  user_id: data?.user_id,
                   device_type: "Control",
                   msg: "GetSetting"
                 });
               });
           
-              socket.on("SyncSetting", (settings) => {
+              socket.on("SyncSetting", (pjtSettings) => {
                 try {
-                  alert(JSON.stringify(settings));
+                  // alert(JSON.stringify(pjtSettings));  // DEBUG PRINT
+
+                  // Function to find index of projector in projectors list
+                  const isSameUuid = (elem: any) => (elem?.device_uuid === pjtSettings?.device_uuid) && (pjtSettings?.device_uuid !== undefined)
+
+                  if (pjtSettings?.msg === "UpdateProjectorAppSetting") {
+                    // Find if projector is already on projectors list
+                    const foundPjtIndex = projectors.findIndex(isSameUuid)
+                    if (foundPjtIndex !== -1) {  
+                      // If projector is already on projectors list, update it
+                      const newProjectors = projectors.map((c, i) => {
+                        if (i === foundPjtIndex) {
+                          return pjtSettings;
+                        } else {
+                          return c;
+                        }
+                      });
+                      setProjectors(newProjectors);
+                    } else {
+                      // If projector is not already on projectors list, append it
+                      setProjectors(
+                        [
+                          ...projectors,
+                          pjtSettings
+                        ]
+                      );
+                    }
+                  } else if (pjtSettings?.msg === "Logout") {
+                    // Remove projector from projectors list
+                    const foundPjtIndex = projectors.findIndex(isSameUuid)
+                    if (foundPjtIndex !== -1) {
+                      const newProjectors = projectors.toSpliced(foundPjtIndex, 1);
+                      setProjectors(newProjectors);
+                    }
+                  }
                 } catch (err) {
-                  alert(settings);
+                  alert(pjtSettings);
                 }
               });
           
               socket.on("connect_error", (err) => {
-                alert(`connect error due to ${err.message}`);
+                console.error(`Error connecting to socket: ${err.message}`);
               });
             });
         }
+      })
+      .catch((err) => {
+        console.log(`Error fetching status: ${err}`);
       });
-  });
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">Projectors</h1>
       <p>You can control projectors signed in to your account.</p>
       <div className="flex flex-col md:flex-row items-start flex-wrap gap-3">
-        <Link className={projectorEntryLinkTagStyle} href="/dashboard/menu">
+        {/* <Link className={projectorEntryLinkTagStyle} href="/dashboard/menu">
           <div className={projectorEntryStyle}>
             <h2 className={projectorNameStyle}>Gibson's Projector</h2>
             <div className={projectorStatusRowStyle}>
@@ -157,10 +222,12 @@ export default function Page() {
               <p>Room 4096</p>
             </div>
             <div className={projectorStatusRowStyle}>
-              <p>{settings.brightness}</p>
+              <p>0</p>
             </div>
           </div>
-        </Link>
+        </Link> */}
+
+        {projectorTiles}
       </div>
     </div>
   );
