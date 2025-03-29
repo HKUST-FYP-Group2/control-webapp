@@ -110,14 +110,14 @@ export default function Page() {
           
               socket.on("SyncSetting", (pjtSettings) => {
                 try {
-                  // alert(JSON.stringify(pjtSettings));  // DEBUG PRINT
+                  console.log(JSON.stringify(pjtSettings));  // DEBUG PRINT
 
                   // Function to find index of projector in projectors list
                   const isSameUuid = (elem: any) => (elem?.device_uuid === pjtSettings?.device_uuid) && (pjtSettings?.device_uuid !== undefined)
 
                   if (pjtSettings?.msg === "UpdateProjectorAppSetting") {
                     // Find if projector is already on projectors list
-                    const foundPjtIndex = projectors.findIndex(isSameUuid)
+                    const foundPjtIndex = projectors.findIndex(isSameUuid);
                     if (foundPjtIndex !== -1) {  
                       // If projector is already on projectors list, update it
                       const newProjectors = projectors.map((c, i) => {
@@ -139,11 +139,11 @@ export default function Page() {
                     }
                   } else if (pjtSettings?.msg === "Logout") {
                     // Remove projector from projectors list
-                    const foundPjtIndex = projectors.findIndex(isSameUuid)
-                    if (foundPjtIndex !== -1) {
-                      const newProjectors = projectors.toSpliced(foundPjtIndex, 1);
-                      setProjectors(newProjectors);
-                    }
+                    setProjectors(
+                      projectors.filter(elem =>
+                        isSameUuid(elem)
+                      )
+                    );
                   }
                 } catch (err) {
                   alert(pjtSettings);
