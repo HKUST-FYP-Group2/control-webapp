@@ -1,3 +1,5 @@
+'use client';
+
 import { 
   MapPinIcon,
   SpeakerWaveIcon,
@@ -15,6 +17,15 @@ import {
   WiLightning
 } from "rocketicons/wi";
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { io } from 'socket.io-client';
+import { apiAddress } from '@/app/globals';
+import { useCookies } from 'react-cookie';
+import { socket } from '@/app/socket';
+
+export const fetchCache = 'force-no-store';
 
 const rocketIconStyle = "icon-black dark:icon-white";
 
@@ -29,6 +40,103 @@ const sliderIconHeightStyle = "h-6";
 const weatherButtonStyle = "flex rounded-md p-6 bg-neutral-50 dark:bg-neutral-900 shadow-md hover:opacity-75 hover:cursor-pointer hover:shadow active:shadow-none duration-200";
 
 export default function Page() {
+  const router = useRouter();
+
+  const [cookies, setCookie] = useCookies(['controlAppToken']);
+
+  // Store settings of target projector
+  const [projector, setProjector] = useState([] as any[]);
+
+  // Get target projector's UUID from parent tile
+  const searchParams = useSearchParams();
+  const targetPjtUuid = searchParams.get('targetPjtUuid');
+
+  useEffect(() => {
+    // Check if target projector is set
+    if (targetPjtUuid === null) {
+      router.push("/dashboard");
+    }
+
+    console.log("Menu: Fetching status");  // DEBUG PRINT
+
+    fetch(apiAddress + "/status", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + cookies.controlAppToken
+      }
+    })
+      .then(response => {
+        if (response?.ok) {
+          console.log("Menu: Fetched status");  // DEBUG PRINT
+
+          response.json()
+            .then(data => {
+              // Set up socket connection
+              // const socket = io(apiAddress, {
+              //   transports: ['polling'],
+              //   extraHeaders: {
+              //     Authorization: "Bearer " + cookies.controlAppToken
+              //   }
+              // });
+
+              if (socket.io.opts.extraHeaders?.Authorization !== `Bearer ${cookies.controlAppToken}`) {
+                socket.io.opts.extraHeaders = {
+                  Authorization: "Bearer " + cookies.controlAppToken
+                };
+                socket.disconnect().connect();
+              }
+
+              socket.off("connect").on('connect', () => {
+                console.log("Menu: Connected to WebSocket");  // DEBUG PRINT
+
+                socket.emit("SyncSetting", {
+                  user_id: data?.user_id,
+                  device_type: "Control",
+                  msg: "GetSetting"
+                });
+              });
+
+              socket.off("SyncSetting").on('SyncSetting', (sync) => {
+                try {
+                  console.log("Menu: SyncSetting message received", sync);  // DEBUG PRINT
+
+                  // Check if message is from user's projectors
+                  if (sync?.user_id === data?.user_id) {
+                    if (sync?.msg === "UpdateProjectorAppSetting") {
+                      // Check if message is from target projector
+                      // If it is, update stored projector settings in this page
+                      if (sync?.device_uuid === targetPjtUuid) {
+                        setProjector(sync);
+                      }
+                    } else if (sync?.msg === "Logout") {
+                      alert("Projector disconnected!");
+                      router.push("/dashboard");
+                    }
+                  }
+                  
+                } catch (err) {
+                  alert(sync);
+                }
+              });
+
+              socket.off("connect_error").on("connect_error", (err) => {
+                console.error(`Error connecting to socket: ${err.message}`);
+              });
+
+              socket.emit("SyncSetting", {
+                user_id: data?.user_id,
+                device_type: "Control",
+                msg: "GetSetting"
+              });
+            });
+        }
+      })
+      .catch(err => {
+        console.log(`Error fetching status: ${err}`);
+      });
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-4xl font-bold">Gibson's Projector</h1>

@@ -14,8 +14,10 @@ import { useState, useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import { apiAddress } from '../globals';
-// import { socket } from '../socket';
+import { socket } from '../socket';
 import { io } from 'socket.io-client';
+
+export const fetchCache = 'force-no-store';
 
 const projectorEntryLinkTagStyle = "w-full md:w-72"
 
@@ -33,7 +35,12 @@ export default function Page() {
   // Projectors
   const [projectors, setProjectors] = useState([] as any[]);
   const projectorTiles = projectors.map(projector => 
-    <Link key={projector?.device_uuid} className={projectorEntryLinkTagStyle} href="/dashboard/menu">
+    <Link key={projector?.device_uuid} className={projectorEntryLinkTagStyle} href={{
+      pathname: "/dashboard/menu",
+      query: {
+        targetPjtUuid: projector?.device_uuid
+      }
+      }}>
       <div className={projectorEntryStyle}>
         {/* Projector name (UUID) */}
         <h2 className={projectorNameStyle}>{projector?.device_uuid.split("-")[0]}</h2>
@@ -80,6 +87,8 @@ export default function Page() {
   // }
 
   useEffect(() => {
+    console.log("Dashboard: Fetching status");  // DEBUG PRINT
+
     fetch(apiAddress + "/status", {
       method: "GET",
       headers: {
@@ -89,71 +98,92 @@ export default function Page() {
     })
       .then(response => {
         if (response?.ok) {
+          console.log("Dashboard: Fetched status");  // DEBUG PRINT
+
           response?.json()
             .then(data => {
               // Set up socket connection
-              const socket = io(apiAddress, {
-                transports: ['polling'],
-                extraHeaders: {
-                  Authorization: "Bearer " + cookies.controlAppToken
-                }
-              });
+              // const socket = io(apiAddress, {
+              //   transports: ['polling'],
+              //   extraHeaders: {
+              //     Authorization: "Bearer " + cookies.controlAppToken
+              //   }
+              // });
 
-              socket.on('connect', () => {
-                // alert("Connected to WebSocket!");  // DEBUG PRINT
+              if (socket.io.opts.extraHeaders?.Authorization !== `Bearer ${cookies.controlAppToken}`) {
+                socket.io.opts.extraHeaders = {
+                  Authorization: "Bearer " + cookies.controlAppToken
+                };
+                socket.disconnect().connect();
+              }
+
+              socket.off('connect').on('connect', () => {
+                console.log("Dashboard: Connected to WebSocket");  // DEBUG PRINT
+
                 socket.emit("SyncSetting", {
                   user_id: data?.user_id,
                   device_type: "Control",
                   msg: "GetSetting"
                 });
               });
-          
-              socket.on("SyncSetting", (pjtSettings) => {
+
+              socket.off("SyncSetting").on("SyncSetting", (pjtSettings) => {
                 try {
-                  console.log(JSON.stringify(pjtSettings));  // DEBUG PRINT
+                  console.log("Dashboard: SyncSetting message received:", pjtSettings);  // DEBUG PRINT
 
                   // Function to find index of projector in projectors list
                   const isSameUuid = (elem: any) => (elem?.device_uuid === pjtSettings?.device_uuid) && (pjtSettings?.device_uuid !== undefined)
 
-                  if (pjtSettings?.msg === "UpdateProjectorAppSetting") {
-                    // Find if projector is already on projectors list
-                    const foundPjtIndex = projectors.findIndex(isSameUuid);
-                    if (foundPjtIndex !== -1) {  
-                      // If projector is already on projectors list, update it
-                      const newProjectors = projectors.map((c, i) => {
-                        if (i === foundPjtIndex) {
-                          return pjtSettings;
-                        } else {
-                          return c;
-                        }
-                      });
-                      setProjectors(newProjectors);
-                    } else {
-                      // If projector is not already on projectors list, append it
+                  // Check if message is from user's projector
+                  if (pjtSettings?.user_id === data?.user_id) {
+                    if (pjtSettings?.msg === "UpdateProjectorAppSetting") {
+                      // Find if projector is already on projectors list
+                      const foundPjtIndex = projectors.findIndex(isSameUuid);
+                      if (foundPjtIndex !== -1) {  
+                        // If projector is already on projectors list, update it
+                        const newProjectors = projectors.map((c, i) => {
+                          if (i === foundPjtIndex) {
+                            return pjtSettings;
+                          } else {
+                            return c;
+                          }
+                        });
+                        setProjectors(newProjectors);
+                      } else {
+                        // If projector is not already on projectors list, append it
+                        setProjectors(
+                          [
+                            ...projectors,
+                            pjtSettings
+                          ]
+                        );
+                      }
+                    } else if (pjtSettings?.msg === "Logout") {
+                      // Remove projector from projectors list
                       setProjectors(
-                        [
-                          ...projectors,
-                          pjtSettings
-                        ]
+                        projectors.filter(elem =>
+                          isSameUuid(elem)
+                        )
                       );
                     }
-                  } else if (pjtSettings?.msg === "Logout") {
-                    // Remove projector from projectors list
-                    setProjectors(
-                      projectors.filter(elem =>
-                        isSameUuid(elem)
-                      )
-                    );
                   }
                 } catch (err) {
                   alert(pjtSettings);
                 }
               });
-          
-              socket.on("connect_error", (err) => {
+
+              socket.off("connect_error").on("connect_error", (err) => {
                 console.error(`Error connecting to socket: ${err.message}`);
               });
+
+              socket.emit("SyncSetting", {
+                user_id: data?.user_id,
+                device_type: "Control",
+                msg: "GetSetting"
+              });
             });
+        } else {
+          response?.json().then(data => console.log(data));  // DEBUG PRINT
         }
       })
       .catch((err) => {
