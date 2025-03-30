@@ -2,12 +2,16 @@
 
 import Link from 'next/link';
 import { FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { apiAddress } from '../globals';
 
 // const apiAddress = "https://api.virtualwindow.cam";  // Production
 // const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Page() {
+  // Router for redirects
+  const router = useRouter();
+
   async function regSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -45,8 +49,10 @@ export default function Page() {
     // Get response body and status
     var responseBody = await response?.json();
     if (response?.ok) {
-      console.log(responseBody);  // DEBUG PRINT
-      alert(JSON.stringify(responseBody));
+      // console.log(responseBody);
+      // alert(JSON.stringify(responseBody));  // DEBUG PRINT
+      alert("Successfully registered! You can log in now.");
+      router.push("/");
     } else {
       alert(`Failed to register: ${responseBody.error}`);
     }

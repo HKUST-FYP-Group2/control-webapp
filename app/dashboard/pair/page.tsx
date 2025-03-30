@@ -30,7 +30,7 @@ export default function Page() {
       "device_uuid": result[0].rawValue
     })
 
-    alert(result[0].rawValue);
+    // alert(result[0].rawValue);  // DEBUG PRINT
 
     fetch(apiAddress + "/QRLogin", {
       method: "POST",
@@ -52,11 +52,11 @@ export default function Page() {
               alert("Failed to pair: " + data.error);
             });
         }
+
+        router.push("/dashboard");
       }
 
       );
-
-    router.push("/dashboard");
   }
 
   return (
