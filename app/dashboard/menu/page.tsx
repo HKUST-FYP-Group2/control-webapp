@@ -45,7 +45,7 @@ export default function Page() {
   const [cookies, setCookie] = useCookies(['controlAppToken']);
 
   // Store settings of target projector
-  const [projector, setProjector] = useState([] as any[]);
+  const [projector, setProjector] = useState({} as any);
 
   // Get target projector's UUID from parent tile
   const searchParams = useSearchParams();
@@ -139,20 +139,26 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-4xl font-bold">Gibson's Projector</h1>
-      <div className="flex flex-row items-center justify-between">
+      {/* Projector name (UUID) */}
+      <h1 className="text-4xl font-bold">{projector?.device_uuid?.split("-")[0]}</h1>
+
+      {/* <div className="flex flex-row items-center justify-between">
         <div className={iconTextRowStyle}>
           <MapPinIcon className="h-4" />
           <p>Room 2407</p>
         </div>
+        
         <div className="flex rounded-md p-3 bg-neutral-50 dark:bg-neutral-900 shadow-md hover:opacity-75 hover:cursor-pointer hover:shadow active:shadow-none duration-200">
           <PowerIcon className="h-4" />
         </div>
-      </div>
+      </div> */}
+
       <div className="h-[50svh] w-full rounded-xl bg-[url('/hkust.jpg')] bg-cover"></div>
+
       <div className="flex flex-col">
+        {/* Video */}
         <div className={menuStatusStyle}>
-          <Link href="menu/selectmedia" className={menuVideoStyle}>HKUST From Above</Link>
+          <Link href="menu/selectmedia" className={menuVideoStyle}>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</Link>
           {/* <select className={menuVideoStyle} defaultValue="-1" name="videoSelect" id="videoSelect">
             <option value="-1">HKUST From Above</option>
             <option value="0">Victoria Harbour</option>
@@ -161,11 +167,23 @@ export default function Page() {
           </select> */}
           <ChevronRightIcon className="h-4" />
         </div> 
+
+        {/* Audio */}
         <div className={menuStatusStyle}>
           <MusicalNoteIcon className="h-4" />
           {/* <p>Ocean Waves</p> */}
           <select className="bg-inherit text-black dark:text-white" defaultValue="-1" name="soundSelect" id="soundSelect">
-            <option value="-1">Ocean Waves</option>
+            <option value="-1">
+            {
+              projector?.settings?.sound?.mode === "original" ?
+              "Original" :
+              (
+                projector?.settings?.sound?.keywords.join(", ") === "" ?
+                "Audio Off" :
+                projector?.settings?.sound?.keywords.join(", ")
+              )
+            }
+            </option>
             <option value="0">Summer Forest</option>
             <option value="1">Waterfall</option>
             <option value="2">Rainy City</option>
@@ -173,17 +191,22 @@ export default function Page() {
           {/* <ChevronRightIcon className="h-4" /> */}
         </div>
       </div>
+
       <div className={iconTextRowStyle + " flex-grow gap-2"}>
+        {/* Volume */}
         <SpeakerXMarkIcon className={sliderIconHeightStyle} />
-        <input type="range" id="volume" name="volume" min="0" max="100" className="w-full" />
+        <input type="range" id="volume" name="volume" min="0" max="100" value={projector?.settings?.sound?.volume || 0} className="w-full" />
         <SpeakerWaveIcon className={sliderIconHeightStyle} />
       </div>
+      {/* Brightness */}
       <div className={iconTextRowStyle + " flex-grow gap-2"}>
         <MoonIcon className={sliderIconHeightStyle} />
-        <input type="range" id="volume" name="volume" min="0" max="100" className="w-full" />
+        <input type="range" id="volume" name="volume" min="0" max="100" value={projector?.settings?.brightness || 0} className="w-full" />
         <SunIcon className={sliderIconHeightStyle} />
       </div>
-      <h2 className="text-2xl font-bold">Weather</h2>
+
+      {/* Weather selection */}
+      {/* <h2 className="text-2xl font-bold">Weather</h2>
       <div className="flex flex-row justify-between">
         <div className="flex flex-col gap-4 items-center">
           <div className={weatherButtonStyle}>
@@ -212,7 +235,7 @@ export default function Page() {
           </div>
           <p>Thunder</p>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
