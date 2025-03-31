@@ -195,13 +195,13 @@ export default function Page() {
       <div className={iconTextRowStyle + " flex-grow gap-2"}>
         {/* Volume */}
         <SpeakerXMarkIcon className={sliderIconHeightStyle} />
-        <input type="range" id="volume" name="volume" min="0" max="100" value={projector?.settings?.sound?.volume || 0} className="w-full" />
+        <input key={`volumeSlider-${projector?.settings?.sound?.volume || 0}`} type="range" id="volume" name="volume" min="0" max="100" defaultValue={projector?.settings?.sound?.volume || 0} className="w-full" />
         <SpeakerWaveIcon className={sliderIconHeightStyle} />
       </div>
       {/* Brightness */}
       <div className={iconTextRowStyle + " flex-grow gap-2"}>
         <MoonIcon className={sliderIconHeightStyle} />
-        <input type="range" id="volume" name="volume" min="0" max="100" value={projector?.settings?.brightness || 0} className="w-full" />
+        <input key={`brightnessSlider-${projector?.settings?.brightness || 0}`} type="range" id="volume" name="volume" min="0" max="100" defaultValue={projector?.settings?.brightness || 0} className="w-full" />
         <SunIcon className={sliderIconHeightStyle} />
       </div>
 
