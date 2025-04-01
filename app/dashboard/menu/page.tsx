@@ -8,7 +8,8 @@ import {
   SpeakerXMarkIcon,
   SunIcon,
   PowerIcon,
-  MoonIcon
+  MoonIcon,
+  VideoCameraSlashIcon
 } from '@heroicons/react/24/solid';
 import { 
   WiDaySunny,
@@ -42,7 +43,7 @@ const weatherButtonStyle = "flex rounded-md p-6 bg-neutral-50 dark:bg-neutral-90
 export default function Page() {
   const router = useRouter();
 
-  const [cookies, setCookie] = useCookies(['controlAppToken']);
+  const [cookies, setCookie] = useCookies(['controlAppToken', 'controlAppStreamKey']);
 
   // Store settings of target projector
   const [projector, setProjector] = useState({} as any);
@@ -50,6 +51,71 @@ export default function Page() {
   // Get target projector's UUID from parent tile
   const searchParams = useSearchParams();
   const targetPjtUuid = searchParams.get('targetPjtUuid');
+
+  // Store username and user ID
+  const [username, setUsername] = useState("");
+  const [userId, setUserId] = useState(-1);
+
+  // Store list of videos
+  const [videos, setVideos] = useState([]);
+  const videoChoices = videos.map((video, index) => 
+    <option value={index}>video</option>
+  );
+
+  // Function to upload new changed settings
+  function uploadSettings(newSettings: Object) {
+    console.log("Menu: Uploading settings");  // DEBUG PRINT
+
+    socket.emit("SyncSetting", {
+      user_id: userId,
+      device_type: "Control",
+      device_uuid: targetPjtUuid,
+      msg: "SetSetting",
+      settings: newSettings
+    });
+  }
+
+  // Function called on brightness slider change
+  function brightnessSliderChange(event: React.ChangeEvent<HTMLInputElement>) {
+    console.log(`Menu: Setting brightness to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      brightness: event.target.value
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on volume slider change
+  function volumeSliderChange(event: React.ChangeEvent<HTMLInputElement>) {
+    console.log(`Menu: Setting volume to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      sound: {
+        ...projector.settings.sound,
+        volume: event.target.value
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on video change
+  function videoChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    console.log(`Menu: Setting video to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      video: {
+        show_video: true,
+        video_url: event.target.value
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
 
   useEffect(() => {
     // Check if target projector is set
@@ -79,6 +145,9 @@ export default function Page() {
               //     Authorization: "Bearer " + cookies.controlAppToken
               //   }
               // });
+
+              // Store user ID into page
+              setUserId(data?.user_id);
 
               if (socket.io.opts.extraHeaders?.Authorization !== `Bearer ${cookies.controlAppToken}`) {
                 socket.io.opts.extraHeaders = {
@@ -135,6 +204,35 @@ export default function Page() {
       .catch(err => {
         console.log(`Error fetching status: ${err}`);
       });
+
+    // Get list of videos
+    const videosBody = JSON.stringify({
+      stream_key: cookies['controlAppStreamKey']
+    });
+
+    fetch(apiAddress + "/videos", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + cookies.controlAppToken
+      },
+      body: videosBody
+    })
+      .then(response => {
+        if (response?.ok) {
+          console.log("Menu: Fetched videos");  // DEBUG PRINT
+
+          response.json()
+            .then(data => {
+              console.log(data);  // DEBUG PRINT
+
+
+            });
+        }
+      })
+      .catch(err => {
+        console.log(`Error fetching videos: ${err}`);
+      });
   }, []);
 
   return (
@@ -158,14 +256,17 @@ export default function Page() {
       <div className="flex flex-col">
         {/* Video */}
         <div className={menuStatusStyle}>
-          <Link href="menu/selectmedia" className={menuVideoStyle}>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</Link>
-          {/* <select className={menuVideoStyle} defaultValue="-1" name="videoSelect" id="videoSelect">
-            <option value="-1">HKUST From Above</option>
-            <option value="0">Victoria Harbour</option>
+          {/* <Link href="menu/selectmedia" className={menuVideoStyle}>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</Link> */}
+          <select className={menuVideoStyle} defaultValue="-1" name="videoSelect" id="videoSelect" onChange={videoChange}>
+            <option value="-1">{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</option>
+
+            {videoChoices}
+
+            {/* <option value="0">Victoria Harbour</option>
             <option value="1">Mong Kok</option>
-            <option value="2">Sea View from HKUST</option>
-          </select> */}
-          <ChevronRightIcon className="h-4" />
+            <option value="2">Sea View from HKUST</option> */}
+          </select>
+          {/* <ChevronRightIcon className="h-4" /> */}
         </div> 
 
         {/* Audio */}
@@ -195,13 +296,13 @@ export default function Page() {
       <div className={iconTextRowStyle + " flex-grow gap-2"}>
         {/* Volume */}
         <SpeakerXMarkIcon className={sliderIconHeightStyle} />
-        <input key={`volumeSlider-${projector?.settings?.sound?.volume || 0}`} type="range" id="volume" name="volume" min="0" max="100" defaultValue={projector?.settings?.sound?.volume || 0} className="w-full" />
+        <input key={`volumeSlider-${projector?.settings?.sound?.volume || 0}`} type="range" id="volume" name="volume" min="0" max="100" defaultValue={projector?.settings?.sound?.volume || 0} className="w-full" onChange={volumeSliderChange} />
         <SpeakerWaveIcon className={sliderIconHeightStyle} />
       </div>
       {/* Brightness */}
       <div className={iconTextRowStyle + " flex-grow gap-2"}>
         <MoonIcon className={sliderIconHeightStyle} />
-        <input key={`brightnessSlider-${projector?.settings?.brightness || 0}`} type="range" id="volume" name="volume" min="0" max="100" defaultValue={projector?.settings?.brightness || 0} className="w-full" />
+        <input key={`brightnessSlider-${projector?.settings?.brightness || 0}`} type="range" id="volume" name="volume" min="0" max="100" defaultValue={projector?.settings?.brightness || 0} className="w-full" onChange={brightnessSliderChange} />
         <SunIcon className={sliderIconHeightStyle} />
       </div>
 

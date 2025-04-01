@@ -11,7 +11,7 @@ import { apiAddress } from "./globals";
 // const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Home() {
-  const [cookies, setCookie] = useCookies(['controlAppToken']);
+  const [cookies, setCookie] = useCookies(['controlAppToken', 'controlAppStreamKey']);
 
   async function loginSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,6 +53,7 @@ export default function Home() {
       // alert(JSON.stringify(responseBody));  // DEBUG PRINT
       // Save token to cookies (temporary)
       setCookie('controlAppToken', responseBody.token);
+      setCookie('controlAppStreamKey', responseBody.stream_key);
       redirect("/dashboard");
     } else {
       alert(`Failed to login: ${responseBody.error}`);
