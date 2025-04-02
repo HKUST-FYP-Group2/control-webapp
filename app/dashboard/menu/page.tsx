@@ -26,6 +26,7 @@ import { apiAddress } from '@/app/globals';
 import { useCookies } from 'react-cookie';
 import { socket } from '@/app/socket';
 import Switch from "react-switch";
+import { generateVideoThumbnailViaUrl } from '@rajesh896/video-thumbnails-generator';
 
 export const fetchCache = 'force-no-store';
 
@@ -64,6 +65,9 @@ export default function Page() {
   const videoChoices = videos.map((video, index) => 
     <option value={index}>video</option>
   );
+
+  // Store thumbnail URL of current playing video
+  // const [thumbUrl, setThumbUrl] = useState("");
 
   // Function to upload new changed settings
   function uploadSettings(newSettings: Object) {
@@ -483,6 +487,21 @@ export default function Page() {
       });
   }, []);
 
+  // Get thumbnail from currently playing video
+  // useEffect(() => {
+  //   if ((projector?.settings?.video?.video_url || null) !== null) {
+  //     console.log(`Loading thumbnail from video ${projector?.settings?.video?.video_url}`)
+  //     generateVideoThumbnailViaUrl(projector?.settings?.video?.video_url, 1)
+  //       .then((thumbnail) => {
+  //         console.log(`Thumbnail found: ${thumbnail}`);
+  //         setThumbUrl(thumbnail);
+  //       })
+  //       .catch(err => {
+  //         console.log(`Failed to load thumbnail from video ${projector?.settings?.video?.video_url}`, err);
+  //       });
+  //   }
+  // }, [projector?.settings?.video?.video_url])
+
   return (
     <div className="flex flex-col gap-4">
       {/* Projector name (UUID) */}
@@ -499,7 +518,11 @@ export default function Page() {
         </div>
       </div> */}
 
-      <div className="h-[50svh] w-full rounded-xl bg-[url('/hkust.jpg')] bg-cover"></div>
+      <div className="bg-[url('/hkust.jpg')] bg-cover rounded-xl">
+        <video key={`projectorPreview_${projector?.settings?.video?.video_url}`} autoPlay muted loop className={"h-[50svh] w-full rounded-xl object-cover"}>
+          <source src={projector?.settings?.video?.video_url}></source>
+        </video>
+      </div>
 
       <div className="flex flex-col gap-2">
         {/* Video */}
@@ -618,7 +641,7 @@ export default function Page() {
       </div> */}
 
       {/* Clock customization */}
-      <div className="flex flex-col flex-grow gap-2">
+      <div className="flex flex-col flex-grow gap-3">
         <h2 className="text-2xl font-bold">Clock</h2>
 
         {/* Show clock */}
