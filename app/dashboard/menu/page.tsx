@@ -19,12 +19,13 @@ import {
 } from "rocketicons/wi";
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
 import { apiAddress } from '@/app/globals';
 import { useCookies } from 'react-cookie';
 import { socket } from '@/app/socket';
+import Switch from "react-switch";
 
 export const fetchCache = 'force-no-store';
 
@@ -39,6 +40,8 @@ const iconTextRowStyle = "flex flex-row items-center gap-1";
 const sliderIconHeightStyle = "h-6";
 
 const weatherButtonStyle = "flex rounded-md p-6 bg-neutral-50 dark:bg-neutral-900 shadow-md hover:opacity-75 hover:cursor-pointer hover:shadow active:shadow-none duration-200";
+
+const switchRowStyle = "flex flex-row w-full flex-grow content-center place-content-between";
 
 export default function Page() {
   const router = useRouter();
@@ -111,6 +114,251 @@ export default function Page() {
       video: {
         show_video: true,
         video_url: event.target.value
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on audio change
+  const audioInputRef = useRef(null);
+
+  function audioChange() {
+
+    // Get inputted keywords
+    // @ts-ignore
+    var keywordList = audioInputRef.current.value.split(", ") || [""];
+    var keywordQuery = keywordList.join(" AND ");
+
+    // Search for audio with keywords
+    console.log(`Searching for audio with query ${keywordQuery}`);  // DEBUG PRINT
+
+    const freesoundApiKey = "tNF2tKLnnGlGt15qih4C4NpjjLKQtbEjPeXaGME6";
+    fetch(
+      `https://freesound.org/apiv2/search/text/?query=${encodeURIComponent(keywordQuery)}&fields=id,name,previews,duration,username,url&page_size=15&filter=duration:[1 TO 120]`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Token ${freesoundApiKey}`
+        }
+      }
+    )
+      .then(response => {
+        if (response?.ok) {
+          response.json()
+            .then(data => {
+              if (data?.count > 0 && data?.results.length > 0) {
+                // Select a random sound from the results
+                const randomIndex = Math.floor(
+                  Math.random() * Math.min(data?.results.length, 10),
+                );
+                const selectedSound = data?.results[randomIndex];
+                const soundUrl = selectedSound.previews["preview-hq-mp3"];
+
+                // Update the settings
+                const newSettings = {
+                  ...projector.settings,
+                  sound: {
+                    ...projector.settings.sound,
+                    mode: "auto",
+                    sound_url: soundUrl,
+                    keywords: keywordList
+                  }
+                };
+            
+                uploadSettings(newSettings);
+
+                // Reset the text field
+                // @ts-ignore
+                audioInputRef.current.value = "";
+              }
+            });
+        }
+      })
+      .catch(err => {
+        console.log(`Failed to fetch audio: ${err}`);  // DEBUG PRINT
+      });
+  }
+
+  // Set audio via URL
+  function changeAudioDirectly() {
+    const newSettings = {
+      ...projector.settings,
+      sound: {
+        ...projector.settings.sound,
+        mode: "manual",
+        // @ts-ignore
+        sound_url: audioInputRef.current.value
+      }
+    };
+
+    uploadSettings(newSettings);
+
+    // Reset the text field
+    // @ts-ignore
+    audioInputRef.current.value = "";
+  }
+
+  // Switch to original audio
+  function changeToOriginalAudio() {
+    // Update the settings
+    const newSettings = {
+      ...projector.settings,
+      sound: {
+        ...projector.settings.sound,
+        mode: "original",
+        // sound_url: "",
+        keywords: [""]
+      }
+    };
+
+    uploadSettings(newSettings);
+
+    // Reset the text field
+    // @ts-ignore
+    audioInputRef.current.value = "";
+  }
+
+  // Function called on show clock change
+  function toggleClock(checked: any) {
+    // Update the settings
+    const newSettings = {
+      ...projector.settings,
+      clock: {
+        ...projector.settings.clock,
+        show_clock: checked
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on show second change
+  function toggleShowSecond(checked: any) {
+    // Update the settings
+    const newSettings = {
+      ...projector.settings,
+      clock: {
+        ...projector.settings.clock,
+        show_second: checked
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on 12 hour format change
+  function toggleHour12(checked: any) {
+    // Update the settings
+    const newSettings = {
+      ...projector.settings,
+      clock: {
+        ...projector.settings.clock,
+        hour_12: checked
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on font size slider change
+  function fontSizeSliderChange(event: React.ChangeEvent<HTMLInputElement>) {
+    console.log(`Menu: Setting clock font size to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      clock: {
+        ...projector.settings.clock,
+        font_size: event.target.value
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on clock font color change
+  function fontColorChange(event: React.ChangeEvent<HTMLInputElement>) {
+    console.log(`Menu: Setting clock font color to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      clock: {
+        ...projector.settings.clock,
+        font_color: event.target.value
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on font color change
+  function clockBgColorChange(event: React.ChangeEvent<HTMLInputElement>) {
+    console.log(`Menu: Setting clock background color to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      clock: {
+        ...projector.settings.clock,
+        background_color: event.target.value
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on show settings bar change
+  function toggleSettingsBar(checked: any) {
+    // Update the settings
+    const newSettings = {
+      ...projector.settings,
+      settings_bar: {
+        ...projector.settings.settings_bar,
+        show_settings_bar: checked
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on settings bar default color change
+  function settingsBarDefaultColorChange(event: React.ChangeEvent<HTMLInputElement>) {
+    console.log(`Menu: Setting settings bar default color to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      settings_bar: {
+        ...projector.settings.settings_bar,
+        default_color: event.target.value
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on settings bar hover background color change
+  function settingsBarHoverBackgroundColorChange(event: React.ChangeEvent<HTMLInputElement>) {
+    console.log(`Menu: Setting settings bar hover background color to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      settings_bar: {
+        ...projector.settings.settings_bar,
+        hover_background_color: event.target.value
+      }
+    };
+
+    uploadSettings(newSettings);
+  }
+
+  // Function called on settings bar hover icon color change
+  function settingsBarHoverIconColorChange(event: React.ChangeEvent<HTMLInputElement>) {
+    console.log(`Menu: Setting settings bar hover icon color to ${event.target.value}`);  // DEBUG PRINT
+
+    const newSettings = {
+      ...projector.settings,
+      settings_bar: {
+        ...projector.settings.settings_bar,
+        hover_icon_color: event.target.value
       }
     };
 
@@ -210,8 +458,8 @@ export default function Page() {
       stream_key: cookies['controlAppStreamKey']
     });
 
-    fetch(apiAddress + "/videos", {
-      method: "GET",
+    fetch(apiAddress + "/get_videos", {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + cookies.controlAppToken
@@ -253,7 +501,7 @@ export default function Page() {
 
       <div className="h-[50svh] w-full rounded-xl bg-[url('/hkust.jpg')] bg-cover"></div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-2">
         {/* Video */}
         <div className={menuStatusStyle}>
           {/* <Link href="menu/selectmedia" className={menuVideoStyle}>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</Link> */}
@@ -273,7 +521,8 @@ export default function Page() {
         <div className={menuStatusStyle}>
           <MusicalNoteIcon className="h-4" />
           {/* <p>Ocean Waves</p> */}
-          <select className="bg-inherit text-black dark:text-white" defaultValue="-1" name="soundSelect" id="soundSelect">
+
+          {/* <select className="bg-inherit text-black dark:text-white" defaultValue="-1" name="soundSelect" id="soundSelect">
             <option value="-1">
             {
               projector?.settings?.sound?.mode === "original" ?
@@ -288,7 +537,37 @@ export default function Page() {
             <option value="0">Summer Forest</option>
             <option value="1">Waterfall</option>
             <option value="2">Rainy City</option>
-          </select>
+          </select> */}
+
+          <div className="flex gap-4 items-start flex-row">
+            <input className="rounded bg-white dark:bg-black text-black dark:text-white" type="text" id="audioInput" name="audioInput" ref={audioInputRef} placeholder={
+                projector?.settings?.sound?.mode === "original" ?
+                "Original" :
+                (
+                  projector?.settings?.sound?.mode === "manual" ?
+                  projector?.settings?.sound?.sound_url :
+                  (
+                    projector?.settings?.sound?.sound_url === "" ?
+                    "Audio Off" :
+                    projector?.settings?.sound?.keywords.join(", ")
+                  )
+                )
+              }
+            ></input>
+
+            <button onClick={audioChange} className="rounded border px-2">
+              Search
+            </button>
+
+            <button onClick={changeAudioDirectly} className="rounded border px-2">
+              URL
+            </button>
+
+            <button onClick={changeToOriginalAudio} className="rounded border px-2">
+              Original
+            </button>
+          </div>
+
           {/* <ChevronRightIcon className="h-4" /> */}
         </div>
       </div>
@@ -337,6 +616,77 @@ export default function Page() {
           <p>Thunder</p>
         </div>
       </div> */}
+
+      {/* Clock customization */}
+      <div className="flex flex-col flex-grow gap-2">
+        <h2 className="text-2xl font-bold">Clock</h2>
+
+        {/* Show clock */}
+        <div className={switchRowStyle}>
+          <p>Show clock</p>
+          <Switch uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleClock} checked={projector?.settings?.clock?.show_clock || false} />
+        </div>
+
+        {/* Show second */}
+        <div className={switchRowStyle}>
+          <p>Show second</p>
+          <Switch uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleShowSecond} checked={projector?.settings?.clock?.show_second || false} />
+        </div>
+
+        {/* Use 12 hour format */}
+        <div className={switchRowStyle}>
+          <p>12-Hour Format</p>
+          <Switch uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleHour12} checked={projector?.settings?.clock?.hour_12 || false} />
+        </div>
+
+        {/* Font size */}
+        <div className={switchRowStyle + " gap-4"}>
+          <p className="whitespace-nowrap">Font size</p>
+          <input key={`brightnessSlider-${projector?.settings?.clock?.font_size || 0}`} type="range" id="fontSize" name="fontSize" min="10" max="100" defaultValue={projector?.settings?.clock?.font_size || 0} className="w-full" onChange={fontSizeSliderChange} />
+          <p>{projector?.settings?.clock?.font_size || 0}</p>
+        </div>
+
+        {/* Font color */}
+        <div className={switchRowStyle}>
+          <p>Font color</p>
+          <input type="color" id="fontColor" name="fontColor" value={projector?.settings?.clock?.font_color || "#000000"} onChange={fontColorChange}></input>
+        </div>
+
+        {/* Background color */}
+        <div className={switchRowStyle}>
+          <p>Background color</p>
+          <input type="color" id="clockBgColor" name="clockBgColor" value={projector?.settings?.clock?.background_color || "#000000"} onChange={clockBgColorChange}></input>
+        </div>
+      </div>
+
+      {/* Settings bar customization */}
+      <div className="flex flex-col flex-grow gap-2">
+        <h2 className="text-2xl font-bold">Settings Bar</h2>
+
+        {/* Show settings bar */}
+        <div className={switchRowStyle}>
+          <p>Show Settings Bar</p>
+          <Switch uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleSettingsBar} checked={projector?.settings?.settings_bar?.show_settings_bar || false} />
+        </div>
+
+        {/* Default color */}
+        <div className={switchRowStyle}>
+          <p>Default color</p>
+          <input type="color" id="settingsBarDefaultColor" name="settingsBarDefaultColor" value={projector?.settings?.settings_bar?.default_color || "#000000"} onChange={settingsBarDefaultColorChange}></input>
+        </div>
+
+        {/* Hover background color */}
+        <div className={switchRowStyle}>
+          <p>Hover background color</p>
+          <input type="color" id="settingsBarHoverBackgroundColor" name="settingsBarHoverBackgroundColor" value={projector?.settings?.settings_bar?.hover_background_color || "#000000"} onChange={settingsBarHoverBackgroundColorChange}></input>
+        </div>
+
+        {/* Hover icon color */}
+        <div className={switchRowStyle}>
+          <p>Hover icon color</p>
+          <input type="color" id="settingsBarHoverIconColor" name="settingsBarHoverIconColor" value={projector?.settings?.settings_bar?.hover_icon_color || "#000000"} onChange={settingsBarHoverIconColorChange}></input>
+        </div>
+      </div>
     </div>
   );
 }

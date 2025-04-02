@@ -50,7 +50,7 @@ export default function Home() {
     // Get response body and status
     var responseBody = await response?.json();
     if (response?.ok) {
-      // alert(JSON.stringify(responseBody));  // DEBUG PRINT
+      console.log(responseBody);  // DEBUG PRINT
       // Save token to cookies (temporary)
       setCookie('controlAppToken', responseBody.token);
       setCookie('controlAppStreamKey', responseBody.stream_key);

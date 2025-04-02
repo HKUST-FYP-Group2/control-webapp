@@ -16,6 +16,7 @@
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-cookie": "^7.2.2",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
+    "react-switch": "^7.1.0",
     "rocketicons": "^0.2.8",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
