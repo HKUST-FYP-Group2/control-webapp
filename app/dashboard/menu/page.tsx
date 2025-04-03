@@ -26,7 +26,8 @@ import { apiAddress } from '@/app/globals';
 import { useCookies } from 'react-cookie';
 import { socket } from '@/app/socket';
 import Switch from "react-switch";
-import { generateVideoThumbnailViaUrl } from '@rajesh896/video-thumbnails-generator';
+import ReactPlayer from 'react-player';
+import styles from './styles.module.css';
 
 export const fetchCache = 'force-no-store';
 
@@ -63,7 +64,7 @@ export default function Page() {
   // Store list of videos
   const [videos, setVideos] = useState([]);
   const videoChoices = videos.map((video, index) => 
-    <option value={index}>video</option>
+    <option key={`videoChoice-${video}`} value={`https://virtualwindow.cam/recordings/${cookies['controlAppStreamKey']}/${video}`}>{video}</option>
   );
 
   // Store thumbnail URL of current playing video
@@ -113,15 +114,25 @@ export default function Page() {
   function videoChange(event: React.ChangeEvent<HTMLSelectElement>) {
     console.log(`Menu: Setting video to ${event.target.value}`);  // DEBUG PRINT
 
-    const newSettings = {
-      ...projector.settings,
-      video: {
-        show_video: true,
-        video_url: event.target.value
-      }
-    };
-
-    uploadSettings(newSettings);
+    if (event.target.value === "Off") {
+      const newSettings = {
+        ...projector.settings,
+        video: {
+          show_video: false,
+          video_url: ""
+        }
+      };
+      uploadSettings(newSettings);
+    } else {
+      const newSettings = {
+        ...projector.settings,
+        video: {
+          show_video: true,
+          video_url: event.target.value
+        }
+      };
+      uploadSettings(newSettings);
+    }
   }
 
   // Function called on audio change
@@ -472,13 +483,10 @@ export default function Page() {
     })
       .then(response => {
         if (response?.ok) {
-          console.log("Menu: Fetched videos");  // DEBUG PRINT
-
           response.json()
             .then(data => {
-              console.log(data);  // DEBUG PRINT
-
-
+              console.log("Menu: Fetched videos", data);  // DEBUG PRINT
+              setVideos(data.videos);
             });
         }
       })
@@ -518,18 +526,23 @@ export default function Page() {
         </div>
       </div> */}
 
-      <div className="bg-[url('/hkust.jpg')] bg-cover rounded-xl">
+      {/* <div className="bg-[url('/hkust.jpg')] bg-cover rounded-xl">
         <video key={`projectorPreview_${projector?.settings?.video?.video_url}`} autoPlay muted loop className={"h-[50svh] w-full rounded-xl object-cover"}>
-          <source src={projector?.settings?.video?.video_url}></source>
+          <source src={projector?.settings?.video?.video_url !== "" ? projector?.settings?.video?.video_url : null}></source>
         </video>
-      </div>
+      </div> */}
+      <ReactPlayer className="video-preview" playing muted url={projector?.settings?.video?.video_url} />
 
       <div className="flex flex-col gap-2">
         {/* Video */}
         <div className={menuStatusStyle}>
           {/* <Link href="menu/selectmedia" className={menuVideoStyle}>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</Link> */}
           <select className={menuVideoStyle} defaultValue="-1" name="videoSelect" id="videoSelect" onChange={videoChange}>
-            <option value="-1">{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</option>
+            <option disabled value="-1">{projector?.settings?.video?.video_url.split("/").slice(-1)}</option>
+
+            <option value={`https://virtualwindow.cam/hls/${cookies['controlAppStreamKey']}/index.m3u8`}>Live</option>
+
+            <option value="Off">Video Off</option>
 
             {videoChoices}
 
