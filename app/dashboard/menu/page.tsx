@@ -118,8 +118,8 @@ export default function Page() {
       const newSettings = {
         ...projector.settings,
         video: {
+          ...projector.settings.video,
           show_video: false,
-          video_url: ""
         }
       };
       uploadSettings(newSettings);
@@ -473,13 +473,13 @@ export default function Page() {
       stream_key: cookies['controlAppStreamKey']
     });
 
-    fetch(apiAddress + "/get_videos", {
-      method: "POST",
+    fetch(apiAddress + "/videos", {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + cookies.controlAppToken
       },
-      body: videosBody
+      // body: videosBody
     })
       .then(response => {
         if (response?.ok) {
@@ -493,7 +493,7 @@ export default function Page() {
       .catch(err => {
         console.log(`Error fetching videos: ${err}`);
       });
-  }, []);
+  }, [projector?.settings?.video?.show_video, projector?.settings?.video?.video_url]);
 
   // Get thumbnail from currently playing video
   // useEffect(() => {
@@ -531,14 +531,14 @@ export default function Page() {
           <source src={projector?.settings?.video?.video_url !== "" ? projector?.settings?.video?.video_url : null}></source>
         </video>
       </div> */}
-      <ReactPlayer className="video-preview" playing muted url={projector?.settings?.video?.video_url} />
+      <ReactPlayer style={{'opacity': projector?.settings?.video?.show_video ? 1 : 0} as React.CSSProperties} className="video-preview" playing={projector?.settings?.video?.show_video} muted url={projector?.settings?.video?.video_url} />
 
       <div className="flex flex-col gap-2">
         {/* Video */}
         <div className={menuStatusStyle}>
           {/* <Link href="menu/selectmedia" className={menuVideoStyle}>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</Link> */}
-          <select className={menuVideoStyle} defaultValue="-1" name="videoSelect" id="videoSelect" onChange={videoChange}>
-            <option disabled value="-1">{projector?.settings?.video?.video_url.split("/").slice(-1)}</option>
+          <select className={menuVideoStyle} key={`videoSelect-${projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}`} defaultValue="-1" name="videoSelect" id="videoSelect" onChange={videoChange}>
+            <option disabled value="-1">{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</option>
 
             <option value={`https://virtualwindow.cam/hls/${cookies['controlAppStreamKey']}/index.m3u8`}>Live</option>
 
