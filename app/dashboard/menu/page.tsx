@@ -410,6 +410,7 @@ export default function Page() {
               // });
 
               // Store user ID into page
+              setUsername(data?.username);
               setUserId(data?.user_id);
 
               if (socket.io.opts.extraHeaders?.Authorization !== `Bearer ${cookies.controlAppToken}`) {
@@ -540,7 +541,7 @@ export default function Page() {
           <select className={menuVideoStyle} key={`videoSelect-${projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}`} defaultValue="-1" name="videoSelect" id="videoSelect" onChange={videoChange}>
             <option disabled value="-1">{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</option>
 
-            <option value={`https://virtualwindow.cam/hls/${cookies['controlAppStreamKey']}/index.m3u8`}>Live</option>
+            <option value={`https://virtualwindow.cam/hls/${username}_key/index.m3u8`}>Live</option>
 
             <option value="Off">Video Off</option>
 

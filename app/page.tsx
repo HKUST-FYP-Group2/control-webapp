@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from 'next/link';
 import { FormEvent } from 'react';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import { apiAddress } from "./globals";
 
@@ -11,6 +11,7 @@ import { apiAddress } from "./globals";
 // const apiAddress = "http://127.0.0.1:8000";  // Development
 
 export default function Home() {
+  const router = useRouter();
   const [cookies, setCookie] = useCookies(['controlAppToken', 'controlAppStreamKey']);
 
   async function loginSubmit(event: FormEvent<HTMLFormElement>) {
@@ -54,7 +55,7 @@ export default function Home() {
       // Save token to cookies (temporary)
       setCookie('controlAppToken', responseBody.token);
       setCookie('controlAppStreamKey', responseBody.stream_key);
-      redirect("/dashboard");
+      router.push("/dashboard");
     } else {
       alert(`Failed to login: ${responseBody.error}`);
     }
