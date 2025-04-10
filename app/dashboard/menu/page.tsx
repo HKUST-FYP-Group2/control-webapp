@@ -618,7 +618,7 @@ export default function Page() {
       {/* Brightness */}
       <div className={iconTextRowStyle + " flex-grow gap-2"}>
         <MoonIcon className={sliderIconHeightStyle} />
-        <input key={`brightnessSlider-${projector?.settings?.brightness || 0}`} type="range" id="volume" name="volume" min="0" max="100" defaultValue={projector?.settings?.brightness || 0} className="w-full" onChange={brightnessSliderChange} />
+        <input key={`brightnessSlider-${projector?.settings?.brightness || 0}`} type="range" id="brightness" name="brightness" min="0" max="100" defaultValue={projector?.settings?.brightness || 0} className="w-full" onChange={brightnessSliderChange} />
         <SunIcon className={sliderIconHeightStyle} />
       </div>
 
@@ -661,19 +661,19 @@ export default function Page() {
         {/* Show clock */}
         <div className={switchRowStyle}>
           <p>Show clock</p>
-          <Switch uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleClock} checked={projector?.settings?.clock?.show_clock || false} />
+          <Switch id="showClockSwitch" uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleClock} checked={projector?.settings?.clock?.show_clock || false} />
         </div>
 
         {/* Show second */}
         <div className={switchRowStyle}>
           <p>Show second</p>
-          <Switch uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleShowSecond} checked={projector?.settings?.clock?.show_second || false} />
+          <Switch id="showSecondSwitch" uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleShowSecond} checked={projector?.settings?.clock?.show_second || false} />
         </div>
 
         {/* Use 12 hour format */}
         <div className={switchRowStyle}>
           <p>12-Hour Format</p>
-          <Switch uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleHour12} checked={projector?.settings?.clock?.hour_12 || false} />
+          <Switch id="use12HSwitch" uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleHour12} checked={projector?.settings?.clock?.hour_12 || false} />
         </div>
 
         {/* Font size */}
@@ -703,7 +703,7 @@ export default function Page() {
         {/* Show settings bar */}
         <div className={switchRowStyle}>
           <p>Show Settings Bar</p>
-          <Switch uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleSettingsBar} checked={projector?.settings?.settings_bar?.show_settings_bar || false} />
+          <Switch id="showSettingsBarSwitch" uncheckedIcon={false} checkedIcon={false} height={24} width={48} onChange={toggleSettingsBar} checked={projector?.settings?.settings_bar?.show_settings_bar || false} />
         </div>
 
         {/* Default color */}

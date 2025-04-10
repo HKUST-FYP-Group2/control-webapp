@@ -7,3 +7,5 @@ export default defineConfig({
     },
   },
 });
+
+supportFile: 'cypress/e2e/cypress/support/e2e.ts';
