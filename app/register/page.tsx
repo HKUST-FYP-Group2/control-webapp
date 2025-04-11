@@ -18,8 +18,15 @@ export default function Page() {
     // Get field values
     const formData = new FormData(event.currentTarget);
     var username: string = formData.get('username')?.toString() || "";
+    var streamKey: string = formData.get('streamKey')?.toString() || "";
     var password: string = formData.get('password')?.toString() || "";
     var confirmPassword: string = formData.get('confirmPassword')?.toString() || "";
+
+    // Check if stream key is provided
+    if (streamKey === "") {
+      alert("Failed to register: Stream key not provided.");
+      return;
+    }
 
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -30,10 +37,12 @@ export default function Page() {
     // Compose request body
     const jsonFormData = JSON.stringify({
       username: username,
+      stream_key: streamKey,
       password: password
     });
 
     // Send request
+    console.log("Sending register request:", jsonFormData);
     var response;
     try {
       response = await fetch(apiAddress + '/users', {
@@ -67,6 +76,7 @@ export default function Page() {
         <form onSubmit={regSubmit}>
           <div className="flex gap-4 items-start flex-col">
             <input className="rounded px-2 py-1 border border-black dark:border-white text-black" type="text" id="email" name="username" placeholder="Username"></input>
+            <input className="rounded px-2 py-1 border border-black dark:border-white text-black" type="text" id="streamKey" name="streamKey" placeholder="Stream key"></input>
             <input className="rounded px-2 py-1 border border-black dark:border-white text-black" type="password" id="password" name="password" placeholder="Password"></input>
             <input className="rounded px-2 py-1 border border-black dark:border-white text-black" type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm password"></input>
 
