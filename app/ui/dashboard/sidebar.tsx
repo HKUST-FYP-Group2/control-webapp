@@ -24,10 +24,16 @@ const sidebarTextStyle = "hidden md:block";
 const usernameRowStyle = "flex flex-row w-16 md:w-full items-center justify-center gap-2 p-3 text-sm md:flex-none md:justify-start md:p-2 md:px-3"
 
 export default function Sidebar() {
-  const [cookies, setCookie] = useCookies(['controlAppToken']);
+  const [cookies, setCookie, removeCookie] = useCookies(['controlAppToken', 'controlAppStreamKey']);
 
   // Username
   const [username, setUsername] = useState("");
+
+  // Clear stored credentials on logout
+  function clearCreds() {
+    removeCookie('controlAppToken');
+    removeCookie('controlAppStreamKey');
+  }
 
   useEffect(() => {
     fetch(apiAddress + "/status", {
@@ -95,7 +101,7 @@ export default function Sidebar() {
         </div>
 
         {/* Sign out button */}
-        <Link className={sidebarEntryStyle} href="/">
+        <Link className={sidebarEntryStyle} href="/" onClick={() => { clearCreds(); }}>
           <button className={sidebarButtonStyle}>
             <ArrowLeftStartOnRectangleIcon className={sidebarIconStyle} />
             <p className={sidebarTextStyle}>Sign Out</p>

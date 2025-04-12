@@ -6,6 +6,7 @@ import { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import { apiAddress } from "./globals";
+import { useState, useEffect } from 'react';
 
 // const apiAddress = "https://api.virtualwindow.cam";  // Production
 // const apiAddress = "http://127.0.0.1:8000";  // Development
@@ -60,6 +61,21 @@ export default function Home() {
       alert(`Failed to login: ${responseBody.error}`);
     }
   }
+
+  useEffect(() => {
+    fetch(apiAddress + "/status", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + cookies.controlAppToken
+      }
+    })
+      .then(response => {
+        if (response?.ok) {
+          router.push('/dashboard');
+        }
+      });
+  }, []);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[576px_1fr] box-border items-center justify-center min-h-svh md:p-8 font-[family-name:var(--font-geist-sans)] bg-[url('/hkust.jpg')] bg-cover">
