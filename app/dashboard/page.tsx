@@ -48,7 +48,7 @@ export default function Page() {
         {/* Current playing video */}
         <div className={projectorStatusRowStyle}>
           <PlayIcon className={projectorStatusIconStyle} />
-          <p>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</p>
+          <p className="truncate">{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</p>
         </div>
         
         {/* Current playing audio */}

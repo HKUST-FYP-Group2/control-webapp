@@ -33,9 +33,9 @@ export const fetchCache = 'force-no-store';
 
 const rocketIconStyle = "icon-black dark:icon-white";
 
-const menuStatusStyle = "flex flex-row w-max items-center gap-1 hover:opacity-75 hover:cursor-pointer duration-200";
+const menuStatusStyle = "flex flex-row items-center gap-1";
 
-const menuVideoStyle = "text-2xl font-bold leading-10 bg-inherit text-black dark:text-white";
+const menuVideoStyle = "w-full text-2xl font-bold leading-10 bg-inherit text-black dark:text-white";
 
 const iconTextRowStyle = "flex flex-row items-center gap-1";
 
@@ -62,10 +62,22 @@ export default function Page() {
   const [userId, setUserId] = useState(-1);
 
   // Store list of videos
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState<string[]>([]);
+
   const videoChoices = videos.map((video, index) => 
     <option key={`videoChoice-${video}`} value={`https://virtualwindow.cam/recordings/${cookies['controlAppStreamKey']}/${video}`}>{video}</option>
   );
+
+  const videosWithWeathers = videos.map(video => {
+    const videoFilenameSplit = video.split(".")[0].split("-");
+    return {
+      url: `https://virtualwindow.cam/recordings/${cookies['controlAppStreamKey']}/${video}`,
+      weather: videoFilenameSplit[videoFilenameSplit.length - 1]
+    };
+  });
+
+  // List of options in weather picker
+  const weatherChoices = [... new Set(videosWithWeathers.map(entry => entry.weather))].map(weather => <option key={`weather-${weather}`} value={weather}>{weather}</option>);
 
   // Store thumbnail URL of current playing video
   // const [thumbUrl, setThumbUrl] = useState("");
@@ -129,6 +141,49 @@ export default function Page() {
         video: {
           show_video: true,
           video_url: event.target.value
+        }
+      };
+      uploadSettings(newSettings);
+    }
+  }
+
+  // Function called on weather change
+  function weatherChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    console.log(`Menu: Setting weather to ${event.target.value}`);  // DEBUG PRINT
+
+    if (event.target.value === "Off") {
+      const newSettings = {
+        ...projector.settings,
+        video: {
+          ...projector.settings.video,
+          show_video: false,
+        }
+      };
+      uploadSettings(newSettings);
+    } else if (event.target.value === "Live") {
+      // Edit settings and submit
+      const newSettings = {
+        ...projector.settings,
+        video: {
+          show_video: true,
+          video_url: `https://virtualwindow.cam/hls/${cookies['controlAppStreamKey']}/index.m3u8`
+        }
+      };
+      uploadSettings(newSettings);
+    } else {
+      // Pick video from weather
+      const videosWithSelectedWeather = videosWithWeathers.filter(entry => 
+        entry.weather === event.target.value
+      );
+      console.log(videosWithSelectedWeather);  // DEBUG PRINT
+      const pickedVideoUrl = videosWithSelectedWeather[Math.floor(Math.random() * videosWithSelectedWeather.length)].url;
+
+      // Edit settings and submit
+      const newSettings = {
+        ...projector.settings,
+        video: {
+          show_video: true,
+          video_url: pickedVideoUrl
         }
       };
       uploadSettings(newSettings);
@@ -532,20 +587,20 @@ export default function Page() {
           <source src={projector?.settings?.video?.video_url !== "" ? projector?.settings?.video?.video_url : null}></source>
         </video>
       </div> */}
-      <ReactPlayer style={{'opacity': projector?.settings?.video?.show_video ? 1 : 0} as React.CSSProperties} className="video-preview" playing={projector?.settings?.video?.show_video} muted url={projector?.settings?.video?.video_url} />
+      <ReactPlayer style={{'opacity': projector?.settings?.video?.show_video ? 1 : 0} as React.CSSProperties} className="video-preview" width="100%" height="auto" playing={projector?.settings?.video?.show_video} muted loop url={projector?.settings?.video?.video_url} />
 
       <div className="flex flex-col gap-2">
         {/* Video */}
         <div className={menuStatusStyle}>
           {/* <Link href="menu/selectmedia" className={menuVideoStyle}>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</Link> */}
-          <select className={menuVideoStyle} key={`videoSelect-${projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}`} defaultValue="-1" name="videoSelect" id="videoSelect" onChange={videoChange}>
+          <select className={menuVideoStyle} key={`videoSelect-${projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}`} defaultValue="-1" name="videoSelect" id="videoSelect" onChange={weatherChange}>
             <option disabled value="-1">{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</option>
 
-            <option value={`https://virtualwindow.cam/hls/${cookies['controlAppStreamKey']}/index.m3u8`}>Live</option>
+            <option value="Live">Live</option>
 
             <option value="Off">Video Off</option>
 
-            {videoChoices}
+            {weatherChoices}
 
             {/* <option value="0">Victoria Harbour</option>
             <option value="1">Mong Kok</option>
@@ -556,7 +611,6 @@ export default function Page() {
 
         {/* Audio */}
         <div className={menuStatusStyle}>
-          <MusicalNoteIcon className="h-4" />
           {/* <p>Ocean Waves</p> */}
 
           {/* <select className="bg-inherit text-black dark:text-white" defaultValue="-1" name="soundSelect" id="soundSelect">
@@ -576,33 +630,39 @@ export default function Page() {
             <option value="2">Rainy City</option>
           </select> */}
 
-          <div className="flex gap-4 items-start flex-row">
-            <input className="rounded bg-white dark:bg-black text-black dark:text-white" type="text" id="audioInput" name="audioInput" ref={audioInputRef} placeholder={
-                projector?.settings?.sound?.mode === "original" ?
-                "Original" :
-                (
-                  projector?.settings?.sound?.mode === "manual" ?
-                  projector?.settings?.sound?.sound_url :
+          <div className="flex gap-4 items-start flex-col md:flex-row">
+            <div className="flex gap-4 items-center flex-row">
+              <MusicalNoteIcon className="h-4" />
+
+              <input className="rounded bg-white dark:bg-black text-black dark:text-white" type="text" id="audioInput" name="audioInput" ref={audioInputRef} placeholder={
+                  projector?.settings?.sound?.mode === "original" ?
+                  "Original" :
                   (
-                    projector?.settings?.sound?.sound_url === "" ?
-                    "Audio Off" :
-                    projector?.settings?.sound?.keywords.join(", ")
+                    projector?.settings?.sound?.mode === "manual" ?
+                    projector?.settings?.sound?.sound_url :
+                    (
+                      projector?.settings?.sound?.sound_url === "" ?
+                      "Audio Off" :
+                      projector?.settings?.sound?.keywords.join(", ")
+                    )
                   )
-                )
-              }
-            ></input>
+                }
+              ></input>
+            </div>
 
-            <button onClick={audioChange} className="rounded border px-2">
-              Search
-            </button>
+            <div className="flex gap-4 items-start flex-row">
+              <button onClick={audioChange} className="rounded border px-2 hover:opacity-75 hover:cursor-pointer duration-200">
+                Search
+              </button>
 
-            <button onClick={changeAudioDirectly} className="rounded border px-2">
-              URL
-            </button>
+              <button onClick={changeAudioDirectly} className="rounded border px-2 hover:opacity-75 hover:cursor-pointer duration-200">
+                URL
+              </button>
 
-            <button onClick={changeToOriginalAudio} className="rounded border px-2">
-              Original
-            </button>
+              <button onClick={changeToOriginalAudio} className="rounded border px-2 hover:opacity-75 hover:cursor-pointer duration-200">
+                Original
+              </button>
+            </div>
           </div>
 
           {/* <ChevronRightIcon className="h-4" /> */}

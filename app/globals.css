@@ -21,8 +21,8 @@ body {
 }
 
 .video-preview video {
-  height: 50svh;
-  width: 100%;
+  /* height: 50svh; */
+  /* width: 100%; */
   border-radius: 0.75rem;
   object-fit: cover;
 }
