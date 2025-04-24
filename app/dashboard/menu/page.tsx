@@ -69,7 +69,7 @@ export default function Page() {
   );
 
   const videosWithWeathers = videos.map(video => {
-    const videoFilenameSplit = video.split(".")[0].split("-");
+    const videoFilenameSplit = video.split(".")[0].split("_");
     return {
       url: `https://virtualwindow.cam/recordings/${cookies['controlAppStreamKey']}/${video}`,
       weather: videoFilenameSplit[videoFilenameSplit.length - 1]
