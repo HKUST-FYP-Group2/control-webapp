@@ -230,7 +230,8 @@ export default function Page() {
                   ...projector.settings,
                   sound: {
                     ...projector.settings.sound,
-                    mode: "auto",
+                    mode: "manual",
+                    sound_name: keywordList.join(", "),
                     sound_url: soundUrl,
                     keywords: keywordList
                   }
