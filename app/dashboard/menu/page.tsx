@@ -9,7 +9,8 @@ import {
   SunIcon,
   PowerIcon,
   MoonIcon,
-  VideoCameraSlashIcon
+  VideoCameraSlashIcon,
+  PlayIcon
 } from '@heroicons/react/24/solid';
 import { 
   WiDaySunny,
@@ -64,20 +65,30 @@ export default function Page() {
   // Store list of videos
   const [videos, setVideos] = useState<string[]>([]);
 
-  const videoChoices = videos.map((video, index) => 
+  // Store current weather class
+  const [weatherClass, setWeatherClass] = useState<string>("temperature");
+  const [weatherScore, setWeatherScore] = useState<string>("");
+
+  const videoChoices = videos
+    .map((video, index) => 
     <option key={`videoChoice-${video}`} value={`https://virtualwindow.cam/recordings/${cookies['controlAppStreamKey']}/${video}`}>{video}</option>
   );
 
   const videosWithWeathers = videos.map(video => {
     const videoFilenameSplit = video.split(".")[0].split("_");
+    const videoWeatherSplit = videoFilenameSplit[videoFilenameSplit.length - 1].split("-")
     return {
       url: `https://virtualwindow.cam/recordings/${cookies['controlAppStreamKey']}/${video}`,
-      weather: videoFilenameSplit[videoFilenameSplit.length - 1]
+      temperature: videoWeatherSplit[0],
+      rain: videoWeatherSplit[1],
+      cloud: videoWeatherSplit[2],
+      wind: videoWeatherSplit[3]
     };
   });
 
   // List of options in weather picker
-  const weatherChoices = [... new Set(videosWithWeathers.map(entry => entry.weather))].map(weather => <option key={`weather-${weather}`} value={weather}>{weather}</option>);
+  // @ts-ignore
+  const weatherChoices = [... new Set(videosWithWeathers.map(entry => entry[weatherClass]))].map(weather => <option key={`weather-${weather}`} value={weather}>{weather}</option>);
 
   // Store thumbnail URL of current playing video
   // const [thumbUrl, setThumbUrl] = useState("");
@@ -151,6 +162,8 @@ export default function Page() {
   function weatherChange(event: React.ChangeEvent<HTMLSelectElement>) {
     console.log(`Menu: Setting weather to ${event.target.value}`);  // DEBUG PRINT
 
+    setWeatherScore(event.target.value);
+
     if (event.target.value === "Off") {
       const newSettings = {
         ...projector.settings,
@@ -173,7 +186,8 @@ export default function Page() {
     } else {
       // Pick video from weather
       const videosWithSelectedWeather = videosWithWeathers.filter(entry => 
-        entry.weather === event.target.value
+        // @ts-ignore
+        entry[weatherClass] === event.target.value
       );
       console.log(videosWithSelectedWeather);  // DEBUG PRINT
       const pickedVideoUrl = videosWithSelectedWeather[Math.floor(Math.random() * videosWithSelectedWeather.length)].url;
@@ -570,7 +584,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       {/* Projector name (UUID) */}
-      <h1 className="text-4xl font-bold">{projector?.device_uuid?.split("-")[0]}</h1>
+      <h1 className="text-4xl font-bold">Projector: {projector?.device_uuid?.split("-")[0].substring(0, 2)}</h1>
 
       {/* <div className="flex flex-row items-center justify-between">
         <div className={iconTextRowStyle}>
@@ -590,12 +604,24 @@ export default function Page() {
       </div> */}
       <ReactPlayer style={{'opacity': projector?.settings?.video?.show_video ? 1 : 0} as React.CSSProperties} className="video-preview" width="100%" height="auto" playing={projector?.settings?.video?.show_video} muted loop url={projector?.settings?.video?.video_url} />
 
+      <div className={menuStatusStyle}>
+        <PlayIcon className="h-4" />
+        <p>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1)[0].split(".")[0].split("_").slice(-1)[0] : "Video Off"}</p>
+      </div>
+
       <div className="flex flex-col gap-2">
         {/* Video */}
         <div className={menuStatusStyle}>
           {/* <Link href="menu/selectmedia" className={menuVideoStyle}>{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</Link> */}
+          <select className={menuVideoStyle} defaultValue="Temperature" name="classSelect" id="classSelect" onChange={event => setWeatherClass(event.target.value)}>
+            <option value="temperature">Temperature</option>
+            <option value="rain">Rain</option>
+            <option value="cloud">Cloud</option>
+            <option value="wind">Wind</option>
+          </select>
+
           <select className={menuVideoStyle} key={`videoSelect-${projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}`} defaultValue="-1" name="videoSelect" id="videoSelect" onChange={weatherChange}>
-            <option disabled value="-1">{projector?.settings?.video?.show_video ? projector?.settings?.video?.video_url.split("/").slice(-1) : "Video Off"}</option>
+            <option disabled value="-1">{projector?.settings?.video?.show_video ? weatherScore : "Video Off"}</option>
 
             <option value="Live">Live</option>
 

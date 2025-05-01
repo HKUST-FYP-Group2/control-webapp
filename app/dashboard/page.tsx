@@ -43,7 +43,7 @@ export default function Page() {
       }}>
       <div className={projectorEntryStyle}>
         {/* Projector name (UUID) */}
-        <h2 className={projectorNameStyle}>{projector?.device_uuid.split("-")[0]}</h2>
+        <h2 className={projectorNameStyle}>{projector?.device_uuid.split("-")[0].substring(0, 2)}</h2>
 
         {/* Current playing video */}
         <div className={projectorStatusRowStyle}>
